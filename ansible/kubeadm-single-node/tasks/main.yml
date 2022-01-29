@@ -130,7 +130,7 @@
 - name: Remove lock files
   become: true
   file:
-    path: {{ item }}
+    path: "{{ item }}"
     state: absent
   with_items:
     - /tmp/kubeadm_initialized
