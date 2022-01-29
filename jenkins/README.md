@@ -58,9 +58,11 @@ Install the following Jenkins plugins. You can do this via Manage Jenkins → Ma
 ### Secrets and SSH keys
 
 - Configure SSH Key in Jenkins for cloning the private repositories
-  Create the SSH key pair using `ssh-keygen` command and add the private key via Manage Jenkins -> Manage Credentials -> Domains(global) -> Add Credentials. Add the username and private key here.
-##TODO
-
-
+  Create the SSH key pair using `ssh-keygen` command and add the private key via Manage Jenkins -> Manage Credentials -> Domains(global) -> Add Credentials. Add the username and private key here. Provide Secret ID as `github_user`
 - Configure the Docker Hub login credentials in Jenkins secrets
-Now add the private key to the Jenkins server. So go to Manage Jenkins -> Manage Credentials -> Domains(global) -> Add Credentials. Add the username and private key here.
+  Add the Docker Hub login credentials as kind "Username with password". Provide secret id as `dockerhub_user`
+- Configure SSH Private key for accessing Kubernetes server from Jenkins
+  Add the pem key of kubernetes server as kind "SSH Username with private key". Provide secret id as `k8s_ubuntu`
+
+
+
