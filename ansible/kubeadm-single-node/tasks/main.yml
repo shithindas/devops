@@ -3,15 +3,14 @@
 - name: install dependency packages 
   become: true
   apt:
-    name: "{{ item }}"
+    name:
+     - apt-transport-https
+     - ca-certificates
+     - curl
+     - software-properties-common
+     - gnupg2
     state: latest
     update_cache: yes
-  with_items:
-    - apt-transport-https
-    - ca-certificates
-    - curl
-    - software-properties-common
-    - gnupg2
 
 - name: Add Docker’s official GPG key
   become: true
@@ -70,13 +69,12 @@
 - name: Install kubernetes packages 
   become: true
   apt:
-    name: "{{ item }}"
+    name:
+     - kubelet
+     - kubeadm
+     - kubectl
     state: latest
     update_cache: yes
-  with_items:
-    - kubelet
-    - kubeadm
-    - kubectl
 
 - name: Initialize Kubeadm to support CNI
   become: true
@@ -117,7 +115,8 @@
 
 - name: Install Flannel Network Addon
   shell: 
-    cmd: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+    cmd: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml && touch /tmp/flannel_configured
+    creates: /tmp/flannel_configured
   tags:
     - configure
 
@@ -135,5 +134,6 @@
   with_items:
     - /tmp/kubeadm_initialized
     - /tmp/taint_removed
+    - /tmp/flannel_configured
   tags:
     - reset
