@@ -110,7 +110,8 @@
 
 - name: Untaint the master Node
   shell: 
-    cmd: kubectl taint nodes --all node-role.kubernetes.io/master-
+    cmd: kubectl taint nodes --all node-role.kubernetes.io/master- && touch /tmp/taint_removed
+    creates: /tmp/taint_removed
   tags:
     - configure
 
@@ -126,10 +127,13 @@
   tags:
     - reset
 
-- name: Remove Kubeadm initialize lock file
+- name: Remove lock files
   become: true
   file:
-    path: /tmp/kubeadm_initialized
+    path: {{ item }}
     state: absent
+  with_items:
+    - /tmp/kubeadm_initialized
+    - /tmp/taint_removed
   tags:
     - reset
