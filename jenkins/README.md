@@ -60,3 +60,8 @@ Configure the Docker Hub login credentials in Jenkins secrets
 
 Configure SSH Key in Jenkins:
 Now add the private key to the Jenkins server. So go to Manage Jenkins -> Manage Credentials -> Domains(global) -> Add Credentials. Add the username and private key here.
+
+Install SSH Agent plugin
+
+SSH	
+SSH Agent
