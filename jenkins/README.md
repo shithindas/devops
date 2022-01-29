@@ -2,7 +2,7 @@
 
 Jenkins is a popular automation server. We use jenkins to build the application images and deploy them to the Kubernetes cluster.  
 
-## Building the image
+## Building the Jenkins image
 
 We need to install some build tools inside the Jenkins server. Hence, we are customizing the default image using Dockerfile. 
 
@@ -18,19 +18,19 @@ docker build -t shithindas/jenkins:tagname .
 docker push shithindas/jenkins:tagname
 ```
 
-## Running Jenkins as Docker
+## Configure Jenkins 
 
 #### Prerequisite
 
-Install Docker via tutorial [Install on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+Docker runtime should be installed on the server. You can refer the tutorial [Install on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 
 ### Starting the Jenkins server
 
-Volumes are used to make sure that we don't lose your Jenkins data. We are exposing our Jenkins server on port `8080`. SSH into the desired server and execute the following steps
+Volume is used to make sure that we don't lose your Jenkins data when the container gets restarted. We are exposing our Jenkins server on port `8080`. SSH into the desired server and execute the following steps to complete the setup.
 
 1. Start the container
 
-To access docker from inside Jenkins docker container, we are mounting docker socket and binary
+We are mounting docker socket and binary to the container because we have to access docker command from inside Jenkins container.(For building nginx app images) 
 
 ```
 mkdir -p /home/ubuntu/jenkins_home
@@ -48,20 +48,16 @@ sudo docker exec jenkins-local cat /var/jenkins_home/secrets/initialAdminPasswor
 
 4. Complete the initial setup via selecting click on `Install suggested plugins` on the Customize Jenkins page.
 
-### Jenkins plugins and  other secrets
-Install the Docker Pipelines plugin on Jenkins:
+### Jenkins plugins
 
-Manage Jenkins → Manage Plugins.
+Install the following Jenkins plugins. You can do this via Manage Jenkins → Manage Plugins. Search the required plugin, click on `Install without restart` and wait until is done.
 
-Search Docker Pipelines, click on Install without restart and wait until is done.
+- Docker Pipelines plugin
+- SSH Agent plugin
 
-Configure the Docker Hub login credentials in Jenkins secrets
+### Secrets and SSH keys
 
-
-Configure SSH Key in Jenkins:
+##TODO
+- Configure the Docker Hub login credentials in Jenkins secrets
+- Configure SSH Key in Jenkins:
 Now add the private key to the Jenkins server. So go to Manage Jenkins -> Manage Credentials -> Domains(global) -> Add Credentials. Add the username and private key here.
-
-Install SSH Agent plugin
-
-SSH	
-SSH Agent
