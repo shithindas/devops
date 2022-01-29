@@ -1,6 +1,6 @@
 ---
 - name: kubernetes-single-node
-  hosts: k8-servers
+  hosts: k8_servers
   remote_user: ubuntu
   roles:
     - kubeadm-single-node
