@@ -1,0 +1,56 @@
+pipeline {
+  agent any
+  environment { 
+      ENV='prod'
+  }
+  options { disableConcurrentBuilds() }
+  stages {
+    stage('Clean Workspace') {
+      steps {
+        cleanWs()
+      }
+    }
+    stage('Clone Repositories') {
+      steps {
+        dir('devops') {
+            checkout([$class: 'GitSCM', 
+            branches: [[name: '*/main']], 
+            extensions: [], 
+            userRemoteConfigs: [[
+                credentialsId: 'github_user',
+                url: 'git@github.com:shithindas/devops.git']]
+            ])
+        }
+      }
+    }
+    stage('Provision Cluster') {
+      when {
+        expression { RESET_CLUSTER == 'false' }
+      }
+      steps {
+        sshagent(credentials: ['k8s_ubuntu']) {
+          sh """
+            cd $WORKSPACE/devops/ansible
+            ansible-playbook -i hosts.yml k8-single-node.yml --skip-tags reset
+          """
+        }  
+      }
+    }
+    stage('Reset Cluster') {
+      when {
+        expression { RESET_CLUSTER == 'true' }
+      }
+      steps {
+        sshagent(credentials: ['k8s_ubuntu']) {
+          sh """
+            cd $WORKSPACE/devops/ansible
+            #Resetting kubeadm
+            ansible-playbook -i hosts.yml k8-single-node.yml --tags reset
+            #Reconfigure Kubeadm
+            ansible-playbook -i hosts.yml k8-single-node.yml --tags configure
+          """
+        }  
+      }
+    }      
+  } 
+}
