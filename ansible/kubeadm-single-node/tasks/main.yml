@@ -1,0 +1,135 @@
+---
+# tasks file for kubeadm-single-node
+- name: install dependency packages 
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+    - gnupg2
+
+- name: Add Docker’s official GPG key
+  become: true
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker apt repository.
+  become: true
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+    state: present
+
+- name: Create docker Directory
+  become: true
+  file:
+    path: /etc/docker
+    state: directory
+    mode: '0775'
+    owner: root
+    group: root
+
+- name: Copy daemon.json
+  become: true
+  template:
+    src: "daemon.json.j2"
+    dest: "/etc/docker/daemon.json"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart docker
+
+- name: Install Docker CE
+  become: true
+  apt:
+    name: docker-ce
+    state: latest
+    update_cache: yes
+
+- name: "Enable docker service"
+  become: true
+  shell: systemctl enable docker
+
+- name: Add Kubernetes' official GPG key
+  become: true
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add kubernetes repository
+  become: true
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Install kubernetes packages 
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Initialize Kubeadm to support CNI
+  become: true
+  shell: 
+    cmd: kubeadm init --pod-network-cidr={{ pod_network_cidr }} && touch /tmp/kubeadm_initialized
+    creates: /tmp/kubeadm_initialized
+  tags:
+    - configure
+
+- name: Create kube Directory
+  file:
+    path: /home/ubuntu/.kube
+    state: directory
+    mode: '0775'
+    owner: ubuntu
+    group: ubuntu
+  tags:
+    - configure
+
+- name: Configure kubectl
+  become: true
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ubuntu/.kube/config
+    owner: ubuntu
+    group: ubuntu
+    mode: 0600
+    remote_src: yes
+  tags:
+    - configure
+
+- name: Untaint the master Node
+  shell: 
+    cmd: kubectl taint nodes --all node-role.kubernetes.io/master-
+  tags:
+    - configure
+
+- name: Install Flannel Network Addon
+  shell: 
+    cmd: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+  tags:
+    - configure
+
+- name: Reset Kubeadm
+  become: true
+  shell: echo y|kubeadm reset
+  tags:
+    - reset
+
+- name: Remove Kubeadm initialize lock file
+  become: true
+  file:
+    path: /tmp/kubeadm_initialized
+    state: absent
+  tags:
+    - reset
