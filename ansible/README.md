@@ -22,5 +22,5 @@ ansible-playbook -i hosts.yml k8-single-node.yml --tags reset
 
 Run playbooks as follows
 ```
-ansible-playbook -i hosts.yml k8-single-node.yml --tags reset
+ansible-playbook -i hosts.yml k8-single-node.yml --tags configure
 ```
